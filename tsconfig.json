@@ -15,5 +15,11 @@
       "_src/*": ["src/*"]
     },
     "incremental": true
-  }
+  },
+  "exclude": [
+    "uploads",
+    "node_modules",
+    "config"
+  ],
+  "include": ["src"]
 }

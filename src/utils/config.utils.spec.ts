@@ -1,4 +1,4 @@
-import { defaultConfig, MeowFileServerConfig, defaultPath } from './config.utils'
+import { defaultConfig, ServerConfig, defaultPath } from './config.utils'
 import * as fs from 'fs'
 import * as path from 'path'
 import { v4 as uuid } from 'uuid'
@@ -20,7 +20,7 @@ describe('config initital', () => {
     })
 
     test('no config.json provided', () => {
-      const config = new MeowFileServerConfig()
+      const config = new ServerConfig()
       expect(config.config).toEqual(defaultConfig)
     })
   })
@@ -51,7 +51,7 @@ describe('config initital', () => {
     })
 
     test('default path test 1', () => {
-      const config = new MeowFileServerConfig()
+      const config = new ServerConfig()
       expect(config.config).toEqual({
         ...defaultConfig,
         ...testObj,
@@ -85,7 +85,7 @@ describe('config initital', () => {
 
     for(let i = 0; i < 10; i++) {
       test(`custom path test ${i}`, () => {
-        const config = new MeowFileServerConfig(path.resolve(path.join(__dirname, `${filePath}/${fileName}`)))
+        const config = new ServerConfig(path.resolve(path.join(__dirname, `${filePath}/${fileName}`)))
         expect(config.config).toEqual({
           ...defaultConfig,
           ...testObj,
