@@ -1,13 +1,15 @@
-import { Body, Controller, Post, UploadedFiles, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Get, Headers, Param, Post, Res, UploadedFiles, UseInterceptors } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { FilesService } from './file.service'
+import { Response } from 'express'
 import * as fs from 'fs'
 import * as md5 from 'md5'
 import * as path from 'path'
-import { uploadFileDto } from './dto/upload.controller.dto'
-import { getHashed } from '_src/utils/bcrypt.utils'
-import { error } from '_src/utils/logger.utils'
-
+import { UploadFileDto } from './dto/upload.controller.dto'
+import { getHashed, hashCompare } from '_src/utils/bcrypt.utils'
+import { error, warning } from '_src/utils/logger.utils'
+import { DownloadFileBodyDto, DownloadFileHeadDto } from './dto/download.controller.dto'
+import { ROOTDIR } from '_src/constants/common.constants'
 @Controller('file')
 export class FilesController {
 
@@ -15,10 +17,9 @@ export class FilesController {
 
   @Post()
   @UseInterceptors(FilesInterceptor('files', 10))
-  upload(@UploadedFiles() files: Array<Express.Multer.File>, @Body() upload: uploadFileDto) {
+  upload(@UploadedFiles() files: Array<Express.Multer.File>, @Body() upload: UploadFileDto) {
     const res = files.map(async file => {
       try {
-        console.log(file)
         const md5ed = md5(fs.readFileSync(file.path))
         fs.renameSync(file.path, path.resolve(path.join(file.destination, md5ed)))
         const dbFile = await this.fileService.create({
@@ -48,6 +49,27 @@ export class FilesController {
     return {
       files: res,
       count: res.length,
+    }
+  }
+
+  @Get(':hashedFileName/download')
+  async download(@Body() body: DownloadFileBodyDto, @Headers() head: DownloadFileHeadDto, @Param() params, @Res() res: Response) {
+    try {
+      const fileInfo = await this.fileService.findByHashedFileName(params.hashedFileName)
+      if(fileInfo.isProtected) {
+        if(!body.passwd) {
+          res.status(403).send()
+          return Promise.reject('Unathorized')
+        }
+        if(!await hashCompare(body.passwd, fileInfo.hashedPasswd)) {
+          res.status(403).send()
+          return Promise.reject('Unauthorized')
+        }
+      }
+      res.download(path.resolve(path.join(ROOTDIR, './uploads', fileInfo.hashedFileName)), `${fileInfo.filename}.${fileInfo.type.split('/')[1]}`)
+    } catch (e) {
+      warning(`Access Denied: ${e}`)
+      res.status(500).send()
     }
   }
 }

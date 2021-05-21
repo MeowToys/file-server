@@ -1,4 +1,4 @@
-export interface uploadFileDto {
+export interface UploadFileDto {
   passwd?: string
   isAdmin?: boolean
   preview?: boolean
