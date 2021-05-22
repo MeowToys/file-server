@@ -19,7 +19,6 @@
   "exclude": [
     "uploads",
     "node_modules",
-    "config"
   ],
-  "include": ["src"]
+  "include": ["src", "config"]
 }

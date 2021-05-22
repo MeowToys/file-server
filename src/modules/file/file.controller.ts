@@ -39,7 +39,7 @@ export class FilesController {
           isSuccess: true,
         }
       } catch(e) {
-        error(`File create failed${e && `: ${e}`}\n`)
+        error(`File create failed: ${e}`)
         return {
           file: file,
           isSuccess: false,
