@@ -5,3 +5,7 @@ export interface UploadFileDto {
   timestamp?: string
   [prop: string]: any
 }
+
+export interface UploadFileHeaderDto {
+  authorization?: string
+}

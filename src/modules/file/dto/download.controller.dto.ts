@@ -2,6 +2,6 @@ export interface DownloadFileBodyDto {
   passwd?: string
 }
 
-export interface DownloadFileHeadDto {
+export interface DownloadFileHeaderDto {
   authorization?: string
 }

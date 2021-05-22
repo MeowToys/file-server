@@ -5,11 +5,13 @@ import { Response } from 'express'
 import * as fs from 'fs'
 import * as md5 from 'md5'
 import * as path from 'path'
-import { UploadFileDto } from './dto/upload.controller.dto'
+import { UploadFileDto, UploadFileHeaderDto } from './dto/upload.controller.dto'
 import { getHashed, hashCompare } from '_src/utils/bcrypt.utils'
 import { error, warning } from '_src/utils/logger.utils'
-import { DownloadFileBodyDto, DownloadFileHeadDto } from './dto/download.controller.dto'
+import { DownloadFileBodyDto, DownloadFileHeaderDto } from './dto/download.controller.dto'
 import { ROOTDIR } from '_src/constants/common.constants'
+import { checkAccessToken } from '_src/utils/token.utils'
+
 @Controller('file')
 export class FilesController {
 
@@ -17,7 +19,13 @@ export class FilesController {
 
   @Post()
   @UseInterceptors(FilesInterceptor('files', 10))
-  upload(@UploadedFiles() files: Array<Express.Multer.File>, @Body() upload: UploadFileDto) {
+  async upload(@UploadedFiles() files: Array<Express.Multer.File>, @Body() upload: UploadFileDto, @Headers() header: UploadFileHeaderDto, @Res() response: Response) {
+
+    if(!await checkAccessToken(header['authorization'].split(' ')[1])) {
+      response.status(403).send()
+      return
+    }
+
     const res = files.map(async file => {
       try {
         const md5ed = md5(fs.readFileSync(file.path))
@@ -53,7 +61,7 @@ export class FilesController {
   }
 
   @Get(':hashedFileName/download')
-  async download(@Body() body: DownloadFileBodyDto, @Headers() head: DownloadFileHeadDto, @Param() params, @Res() res: Response) {
+  async download(@Body() body: DownloadFileBodyDto, @Headers() header: DownloadFileHeaderDto, @Param() params, @Res() res: Response) {
     try {
       const fileInfo = await this.fileService.findByHashedFileName(params.hashedFileName)
       if(fileInfo.isProtected) {

@@ -1,11 +1,12 @@
+declare function require(moduleName: string): any;
 import { NestFactory } from '@nestjs/core'
-import { AppModule } from './app.module'
 import { ServerConfig } from './utils/config.utils'
 import { getHashed } from './utils/bcrypt.utils'
 import { warning, info, error } from './utils/logger.utils'
 import * as inquirer from 'inquirer'
 import { v4 as uuid } from 'uuid'
 import { exit } from 'process'
+import { AppModule as App } from './app.module'
 
 const config = new ServerConfig()
 
@@ -16,6 +17,8 @@ async function start(port: number) {
   })
   info('Token secret generated!')
   info(`Nest start at localhost:${port}`)
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const AppModule: typeof App = require('./app.module').AppModule
   const app = await NestFactory.create(AppModule)
   await app.listen(port)  
 }

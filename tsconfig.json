@@ -11,14 +11,14 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "_config/*": ["config/*"],
+      "_config/*": ["src/config/*"],
       "_src/*": ["src/*"]
     },
     "incremental": true
   },
   "exclude": [
     "uploads",
-    "node_modules",
+    "node_modules"
   ],
-  "include": ["src", "config"]
+  "include": ["src"]
 }

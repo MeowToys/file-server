@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose'
+import { Model } from 'mongoose'
 import { error } from '_src/utils/logger.utils'
-import { CreateFileDto } from './dto/create-file.service.dto';
-import { FileDocument } from './file.schema';
+import { CreateFileDto } from './dto/create-file.service.dto'
+import { FileDocument } from './file.schema'
 
 @Injectable()
 export class FilesService {

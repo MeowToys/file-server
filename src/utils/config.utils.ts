@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { warning, info, error } from './logger.utils'
-import { ROOTDIR } from '../constants/common.constants'
+import { SRCDIR } from '../constants/common.constants'
 
 export interface IConfig extends Object {
   database: {
@@ -18,7 +18,8 @@ export const defaultConfig: IConfig = {
   },
 }
 
-export const defaultPath = path.resolve(path.join(__dirname, '../../config/config.json'))
+export const defaultPath = path.resolve(path.join(SRCDIR, './config/config.json'))
+console.log('!!!', defaultPath)
 
 export class ServerConfig {
   configPath: fs.PathLike
@@ -43,7 +44,7 @@ export class ServerConfig {
       }
     }
     
-    this.configSavePath = path.resolve(path.join(ROOTDIR, './config'))
+    this.configSavePath = path.resolve(path.join(SRCDIR, './config'))
 
     ServerConfig.writeConfig(this.config, this.configSavePath)
   }
@@ -59,7 +60,7 @@ export class ServerConfig {
       if(fs.existsSync(path.resolve(path.join(targetPath, './server.config.js')))) fs.rmSync(path.resolve(path.join(targetPath, './server.config.js')))
       if(fs.existsSync(path.resolve(path.join(targetPath, './config.json')))) fs.rmSync(path.resolve(path.join(targetPath, './config.json')))
       fs.appendFileSync(path.resolve(path.join(targetPath, './config.json')), JSON.stringify(config, null, 2))
-      fs.appendFileSync(path.resolve(path.join(targetPath, './server.config.js')), `const config = ${JSON.stringify(config, null, 2)}\nexport default config`)
+      fs.appendFileSync(path.resolve(path.join(targetPath, './server.config.js')), `const configFile = ${JSON.stringify(config, null, 2)}\nmodule.export = configFile`)
       info(`config write complete`)
     } catch (e) {
       error(`config write failed: ${e}`)
