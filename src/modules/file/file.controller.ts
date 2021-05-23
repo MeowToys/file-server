@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Headers, Param, Post, Req, Res, UploadedFiles, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Headers, Param, Post, Req, Res, UploadedFiles, UseInterceptors } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { FilesService } from './file.service'
 import { Response, Request } from 'express'
@@ -28,14 +28,14 @@ export class FilesController {
               return Promise.reject('Unauthorized')
             })
       
-    const res = files.map(async file => {
+    files.map(async file => {
       try {
         const md5ed = md5(fs.readFileSync(file.path))
         if(!fs.existsSync(path.resolve(path.join(file.destination, md5ed))))
           fs.renameSync(file.path, path.resolve(path.join(file.destination, md5ed)))
         else 
           fs.rmSync(file.path)
-        const dbFile = await this.fileService.create({
+        await this.fileService.create({
           filename: file.filename.split('.')[1],
           hashedFileName: md5ed,
           adminOnly: upload.isAdmin || false,
@@ -44,25 +44,30 @@ export class FilesController {
           type: file.mimetype,
           path: path.resolve(path.join(file.destination, md5ed)),
           preview: upload.preview || false,
-          uploadTime: upload.timestamp || new Date().toTimeString(),
+          uploadTime: new Date().toLocaleString(),
           hashedPasswd: upload.passwd && await getHashed(upload.passwd),
         })
-        return {
-          file: dbFile,
-          isSuccess: true,
-        }
       } catch(e) {
         error(`File create failed: ${e}`)
-        return {
-          file: file,
-          isSuccess: false,
-        }
       }
     })
-    response.status(200).send({
-      files: res,
-      count: res.length,
-    })
+    response.status(200).send()
+  }
+
+  @Delete(':hashedFileName')
+  async delete(@Headers() header: DownloadFileHeaderDto, @Param() params, @Res() res: Response) {
+    await checkAccessToken(header['authorization'] && header['authorization'].split(' ')[1])
+            .catch(() => {
+              res.status(403).send()
+              return Promise.reject('Unauthorized')
+            })
+    await this.fileService.deleteByHashedFileName(params.hashedFileName)
+                .then(() => {
+                  res.status(204).send()
+                })
+                .catch(() => {
+                  res.status(500).send('Error')
+                })
   }
 
   @Get(':hashedFileName/download')

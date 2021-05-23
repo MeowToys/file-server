@@ -46,4 +46,15 @@ export class FilesService {
       return Promise.reject(err)
     }
   }
+
+  async deleteByHashedFileName(hashedFileName: string) {
+    try {
+      const file = await this.fileModel.findOneAndRemove({ hashedFileName })
+      if(!file) return Promise.resolve(true)
+      return Promise.resolve(true)
+    } catch (e) {
+      error(`Query Error: ${e}`)
+      return Promise.reject('Query Error')
+    }
+  }
 }
