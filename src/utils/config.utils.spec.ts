@@ -4,6 +4,7 @@ import * as path from 'path'
 import { v4 as uuid } from 'uuid'
 
 describe('config initital', () => {
+
   describe('no path', () => {
 
     const existFile = fs.existsSync(defaultPath)
@@ -14,8 +15,12 @@ describe('config initital', () => {
     }
 
     afterAll(() => {
-      if(existFile) {
-        fs.appendFileSync(defaultPath, tempFile)
+      if(fs.existsSync(defaultPath)) {
+        if(!existFile) {
+          fs.rmSync(defaultPath)
+        } else {
+          fs.appendFileSync(defaultPath, tempFile)
+        }
       }
     })
 
@@ -25,15 +30,19 @@ describe('config initital', () => {
     })
   })
   describe('default path', () => {
+
     const existFile = fs.existsSync(defaultPath)
     let tempFile = ''
     if(existFile) {
+      
       tempFile = fs.readFileSync(defaultPath, { encoding: 'utf-8' })
     }
     let testObj = {}
 
     beforeEach(() => {
-      if(existFile) fs.rmSync(defaultPath)
+      if(fs.existsSync(defaultPath)) { 
+        fs.rmSync(defaultPath)
+      }
       testObj = {
         test: '1234',
         test4: '222',

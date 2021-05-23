@@ -19,7 +19,6 @@ export const defaultConfig: IConfig = {
 }
 
 export const defaultPath = path.resolve(path.join(SRCDIR, './config/config.json'))
-console.log('!!!', defaultPath)
 
 export class ServerConfig {
   configPath: fs.PathLike
@@ -30,7 +29,7 @@ export class ServerConfig {
    * set config file, if file is not provided, use default settings instead
    * @param configPath path of config.json, defaults to be 'file-server/config/config.json'
    */
-  constructor(configPath: fs.PathLike = defaultPath) {
+  constructor(configPath = defaultPath) {
     this.configPath = configPath
     if(!fs.existsSync(this.configPath)) {
       warning(`No config file found on ${this.configPath}, use default config instead\n`)
@@ -44,7 +43,7 @@ export class ServerConfig {
       }
     }
     
-    this.configSavePath = path.resolve(path.join(SRCDIR, './config'))
+    this.configSavePath = path.resolve(path.join(this.configPath, '../'))
 
     ServerConfig.writeConfig(this.config, this.configSavePath)
   }

@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt'
 
-export const getHashed = async (str: string) => {
-  const hashed = await bcrypt.hash(str, 10)
+export const getHashed = async (str: string, salt?: string) => {
+  const hashed = await bcrypt.hash(str, salt || 10)
   return hashed
 }
 
