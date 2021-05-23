@@ -33,9 +33,9 @@ export const createRefreshToken = async (body: Record<string, any>)  => {
 }
 
 export const checkRefreshToken = (token: string) => {
-  return new Promise<Record<string, any>|string>((resolve, reject) => {
+  return new Promise<Record<string, any>>((resolve, reject) => {
     if(!token) return reject('No Token')
-    jwt.verify(token, config.secret, (err: Error, payload: Record<string, any>|string) => {
+    jwt.verify(token, config.secret, (err: Error, payload: Record<string, any>) => {
       if(err) reject(err)
       else resolve(payload)
     })
@@ -46,7 +46,9 @@ export const refreshAccessToken = (token: string) => {
   return new Promise<string>(async (resolve, reject) => {
     await checkRefreshToken(token)
             .then(async payload => {
-              return await createAccessToken(payload)
+              return await createAccessToken({
+                tokenId: payload.tokenId
+              })
                             .then(encoded => resolve(encoded))
                             .catch(err => reject(err))
             })

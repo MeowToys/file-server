@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Headers, Param, Post, Res, UploadedFiles, UseInterceptors } from '@nestjs/common'
+import { Body, Controller, Get, Headers, Param, Post, Req, Res, UploadedFiles, UseInterceptors } from '@nestjs/common'
 import { FilesInterceptor } from '@nestjs/platform-express'
 import { FilesService } from './file.service'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 import * as fs from 'fs'
 import * as md5 from 'md5'
 import * as path from 'path'
@@ -11,6 +11,7 @@ import { error, warning } from '_src/utils/logger.utils'
 import { DownloadFileBodyDto, DownloadFileHeaderDto } from './dto/download.controller.dto'
 import { ROOTDIR } from '_src/constants/common.constants'
 import { checkAccessToken } from '_src/utils/token.utils'
+import { FileListBodyDto } from './dto/list.controller.dto'
 
 @Controller('file')
 export class FilesController {
@@ -72,17 +73,17 @@ export class FilesController {
               .catch(async () => {
                 if(fileInfo.isProtected) {
                   if(!body.passwd) {
-                    res.status(403).send()
-                    return Promise.reject('Unathorized')
+                    res.status(403).send('Unauthorized')
+                    return
                   }
                   if(!await hashCompare(body.passwd, fileInfo.hashedPasswd)) {
-                    res.status(403).send()
-                    return Promise.reject('Unauthorized')
+                    res.status(403).send('Unauthorized')
+                    return
                   }
                 }
                 if(fileInfo.adminOnly) {
-                  res.status(403).send()
-                  return Promise.reject('Unauthorized')
+                  res.status(403).send('Unauthorized')
+                  return
                 }
             })
         
@@ -91,5 +92,93 @@ export class FilesController {
       warning(`Access Denied: ${e}`)
       res.status(500).send()
     }
+  }
+
+  @Get(':hashedFileName/info')
+  async getInfo(@Headers() header: DownloadFileHeaderDto, @Body() body: DownloadFileBodyDto, @Res() res: Response, @Param() params, @Req() req: Request) {
+    let isAdmin = false
+    await this.fileService.findByHashedFileName(params.hashedFileName)
+            .then(async file => {
+              if(file.adminOnly) {
+                await checkAccessToken(header['authorization'] && header['authorization'].split(' ')[1])
+                        .then(() => { isAdmin = true })
+                        .catch(err => {
+                          warning(`Failed filed access from ip ${req.ip}, ${err}`)
+                          res.status(403).send('Unauthorized')
+                          return
+                        })
+              }
+              if(file.isProtected) {
+                if(!isAdmin) {
+                  if(!body.passwd) {
+                    res.status(403).send('Unauthorized')
+                    return
+                  }
+                  if(!await hashCompare(body.passwd, file.hashedPasswd)) {
+                    res.status(403).send('Unauthorized')
+                    return
+                  }                  
+                }
+              }
+              const response = {
+                filename: file.filename,
+                size: file.fileSize,
+                uploadTime: file.uploadTime,
+                hashedFileName: file.hashedFileName,
+                type: file.type,
+                preview: file.preview,
+              }
+              res.status(200).send(response)
+            })
+            .catch(() => {
+              res.status(404).send('File Not Found')
+            })
+  }
+
+  @Get(':hashedFileName/preview') 
+  async getPreview(@Body() body: DownloadFileBodyDto, @Headers() header: DownloadFileHeaderDto, @Param() params, @Res() res: Response) {
+    try {
+      const file = await this.fileService.findByHashedFileName(params.hashedFileName)
+      if(!file.preview) {
+        res.status(403).send('Can\'t be previewed')
+        return 
+      }
+      await checkAccessToken(header['authorization'] && header['authorization'].split(' ')[1])
+              .catch(async () => {
+                if(file.isProtected) {
+                  if(!body.passwd) {
+                    res.status(403).send('Unauthorized')
+                    return
+                  }
+                  if(!await hashCompare(body.passwd, file.hashedPasswd)) {
+                    res.status(403).send('Unauthorized')
+                    return
+                  }
+                }
+                if(file.adminOnly) {
+                  res.status(403).send('Unauthorized')
+                  return
+                }
+            })
+        
+      res.sendFile(path.resolve(path.join(ROOTDIR, './uploads', file.hashedFileName)), `${file.filename}.${file.type.split('/')[1]}`)
+    } catch (e) {
+      warning(`Access Denied: ${e}`)
+      res.status(500).send()
+    }
+  }
+
+  @Get()
+  async getAll(@Body() body: FileListBodyDto, @Res() res: Response) {
+    await this.fileService.findAll(body.pageSize || 12, body.page || 1)
+            .then(files => {
+              res.status(200).send({
+                files,
+                count: files.length,
+              })
+            })
+            .catch(() => {
+              res.status(500).send()
+            })  
   }
 }

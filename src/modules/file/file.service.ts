@@ -23,12 +23,27 @@ export class FilesService {
 
   async findByHashedFileName(hashedFileName: string) {
     try {
-      const file = (await this.fileModel.findOne({ hashedFileName })).toObject()
+      const file = await this.fileModel.findOne({ hashedFileName }).lean()
       if(!file) return Promise.reject('File Not Exist')
-      return file
+      return Promise.resolve(file)
     } catch (e) {
       error(`Query Error: ${e}`)
       return Promise.reject('Query Error')
+    }
+  }
+
+  async findAll(pageSize = 12, page = 1) {
+    try {
+      const files = await this.fileModel
+                              .find()
+                              .select('filename fileSize hashedFileName type uploadTime adminOnly preview isProtected -_id')
+                              .sort('filename')
+                              .skip(pageSize * (page - 1))
+                              .limit(pageSize)
+                              .lean()
+      return Promise.resolve(files)
+    } catch (err) {
+      return Promise.reject(err)
     }
   }
 }
