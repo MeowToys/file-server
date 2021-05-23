@@ -4,6 +4,7 @@
 
 #user file
 /config
+/src/config
 /uploads
 
 # Logs

@@ -16,7 +16,7 @@ import { ROOTDIR } from '_src/constants/common.constants'
       storage: diskStorage({
         destination: path.resolve(path.join(ROOTDIR, './uploads')),
         filename: (req, file, cb) => {
-          const filename = `${uuid()}.${file.mimetype.split('/')[1]}`
+          const filename = `${uuid()}.${file.originalname}.${file.mimetype.split('/')[1]}`
           return cb(null, filename)
         },
       }),
@@ -24,6 +24,5 @@ import { ROOTDIR } from '_src/constants/common.constants'
   ],
   controllers: [FilesController],
   providers: [FilesService],
-  exports: [FilesService],
 })
 export class FilesModule {}

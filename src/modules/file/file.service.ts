@@ -11,9 +11,9 @@ export class FilesService {
 
   async create(createFileDto: CreateFileDto): Promise<FileDocument|string> {
     try {
-      if(await this.fileModel.find({ hashedFileName: createFileDto.hashedFileName })) return Promise.reject('File Exist')
+      if(await this.fileModel.findOne({ hashedFileName: createFileDto.hashedFileName })) return Promise.reject('File Exist')
       const createFile = new this.fileModel(createFileDto)
-      const savedFile = createFile.save()
+      const savedFile = await createFile.save()
       return savedFile
     } catch {
       error(`Create file failed\n`)

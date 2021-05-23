@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
 import * as jwt from 'jsonwebtoken'
-import * as conf from '../config/server.config.js'
+import { config } from '../config/server.config.js'
 
 export const createAccessToken = (body: Record<string, any>|string) => {
   return new Promise<string>((resolve, reject) => {
-    jwt.sign(body, conf.secret, { expiresIn: '3m' }, (err, encoded) => {
+    jwt.sign(body, config.secret, { expiresIn: '3m' }, (err, encoded) => {
       if(err) return reject(err)
       return resolve(encoded)
     })
@@ -12,9 +11,10 @@ export const createAccessToken = (body: Record<string, any>|string) => {
   
 }
 
-export const checkAccessToken = (token: string) => {
+export const checkAccessToken = (token?: string) => {
   return new Promise<Record<string, any>|string>((resolve, reject) => {
-    jwt.verify(token, conf.secret, (err: Error, payload: Record<string, any>|string) => {
+    if(!token) return reject('No Token')
+    jwt.verify(token, config.secret, (err: Error, payload: Record<string, any>|string) => {
       if(err) return reject(err)
       return resolve(payload)
     })
@@ -24,7 +24,7 @@ export const checkAccessToken = (token: string) => {
 
 export const createRefreshToken = async (body: Record<string, any>)  => {
   return new Promise<string>((resolve, reject) => {
-    jwt.sign(body, conf.secret, { expiresIn: '3m' }, (err, encoded) => {
+    jwt.sign(body, config.secret, { expiresIn: '3d' }, (err, encoded) => {
       if(err) return reject(err)
       return resolve(encoded)
     })
@@ -34,7 +34,8 @@ export const createRefreshToken = async (body: Record<string, any>)  => {
 
 export const checkRefreshToken = (token: string) => {
   return new Promise<Record<string, any>|string>((resolve, reject) => {
-    jwt.verify(token, conf.secret, (err: Error, payload: Record<string, any>|string) => {
+    if(!token) return reject('No Token')
+    jwt.verify(token, config.secret, (err: Error, payload: Record<string, any>|string) => {
       if(err) reject(err)
       else resolve(payload)
     })

@@ -60,7 +60,7 @@ export class ServerConfig {
       if(fs.existsSync(path.resolve(path.join(targetPath, './server.config.js')))) fs.rmSync(path.resolve(path.join(targetPath, './server.config.js')))
       if(fs.existsSync(path.resolve(path.join(targetPath, './config.json')))) fs.rmSync(path.resolve(path.join(targetPath, './config.json')))
       fs.appendFileSync(path.resolve(path.join(targetPath, './config.json')), JSON.stringify(config, null, 2))
-      fs.appendFileSync(path.resolve(path.join(targetPath, './server.config.js')), `const configFile = ${JSON.stringify(config, null, 2)}\nmodule.export = configFile`)
+      fs.appendFileSync(path.resolve(path.join(targetPath, './server.config.js')), `const configFile = ${JSON.stringify(config, null, 2)}\nexports.config = configFile`)
       info(`config write complete`)
     } catch (e) {
       error(`config write failed: ${e}`)
