@@ -207,3 +207,4 @@ $ yarn start:prod
 - [ ] 类型声明
 - [ ] dockerfile
 - [ ] 一键部署脚本
+- [ ] 日志系统
